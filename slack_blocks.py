@@ -87,6 +87,12 @@ class ImageBlock(BaseBlock):
 
 
 @dataclass
+class RichTextBlock(BaseBlock):
+    sections: list[dict[str,Any]]
+    element: list[dict[str,Any]]
+
+
+@dataclass
 class SlackBlock:
     blocks: list[Any]
 
