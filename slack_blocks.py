@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from slack_client import SlackClient
 
-def check_type_keys(base_key: str, type_key_values: dict[str, list[str]], received_values: dict[str, Any]):
+def _check_type_keys(base_key: str, type_key_values: dict[str, list[str]], received_values: dict[str, Any]):
     """
     Checks for necessary keys in a dictionary based on a base key's value.
 
@@ -133,7 +133,7 @@ class HeaderBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'title' to change the title.
         """
-        check_type_keys("title", {}, kwargs)
+        _check_type_keys("title", {}, kwargs)
         self.title = str(kwargs.get("title", self.title))
     
     def append(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
@@ -144,7 +144,7 @@ class HeaderBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'title' to append to the title.
         """
-        check_type_keys("title", {}, kwargs)
+        _check_type_keys("title", {}, kwargs)
         new_data: str = str(kwargs.get("title", ""))
         self.title = f"{self.title} {new_data}"
 
@@ -190,7 +190,7 @@ class ContextBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'image_url', 'alt_text', 'type', 'text'.
         """
-        check_type_keys("type", {"image":["image_url", "alt_text"], "plain_text":["text"], "mrkdwn":["text"]}, kwargs)
+        _check_type_keys("type", {"image":["image_url", "alt_text"], "plain_text":["text"], "mrkdwn":["text"]}, kwargs)
         self.elements.append(
             {
                 "type": "image",
@@ -245,7 +245,7 @@ class SectionBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'type', 'text'.
         """
-        check_type_keys("type", {"plain_text":["text"], "mrkdwn":["text"]}, kwargs)
+        _check_type_keys("type", {"plain_text":["text"], "mrkdwn":["text"]}, kwargs)
         self.element = {
             "type": str(kwargs.get("type", "plain_text")),
             "text": str(kwargs.get("text", "plain_text")),
@@ -259,7 +259,7 @@ class SectionBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'image_url', 'alt_text'.
         """
-        check_type_keys("type", {"image":["image_url", "alt_text"]}, kwargs)
+        _check_type_keys("type", {"image":["image_url", "alt_text"]}, kwargs)
         self.element["accessory"] = {
             "type": "image",
             "image_url": str(kwargs.get("image_url", "")),
@@ -370,7 +370,7 @@ class RichTextBlock(BaseBlock):
         - dict[str, Any]: Dictionary representing a rich text section.
         """
         for element in text_list:
-            check_type_keys("type", {"text":["text"], "emoji":["name"]}, element)
+            _check_type_keys("type", {"text":["text"], "emoji":["name"]}, element)
         return {
                 "type": "rich_text_section",
                 "elements": [
