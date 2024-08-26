@@ -1,19 +1,18 @@
-import os
 from io import IOBase
+from typing import Any
+from dataclasses import dataclass
 
 import slack_sdk
-from dotenv import load_dotenv
 
+@dataclass
 class SlackClient():
-    load_dotenv(override=True)
-    bot_token = os.environ.get("SLACK_BOT_TOKEN")
-    client = slack_sdk.WebClient(bot_token)
-    channel = os.environ.get("SLACK_CHANNEL")
+    bot_token: str
 
-    @classmethod
-    def post_message_block(cls, channel_id: str, blocks: str | None, text: str = ""):
-        cls.client.chat_postMessage(channel=channel_id, text=text, blocks=blocks ) # type: ignore
+    def _client(self):
+        return slack_sdk.WebClient(self.bot_token)
 
-    @classmethod
-    def upload(cls, file: str | bytes | IOBase | None):
-        return cls.client.files_upload(file=file) # type: ignore
+    def post_message_block(self, channel_id: str, blocks: Any | None, text: str = ""):
+        self._client().chat_postMessage(channel=channel_id, text=text, blocks=blocks ) # type: ignore
+
+    def upload(self, file: str | bytes | IOBase | None): # type: ignore
+        return self._client().files_upload_v2(file=file) # type: ignore
