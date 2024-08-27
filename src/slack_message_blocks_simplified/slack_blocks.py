@@ -228,12 +228,14 @@ class SectionBlock(BaseBlock):
     - element (dict[str, Any]): Dictionary containing the section content.
     """
     element: dict[str, Any] = field(default_factory=dict)
+    accessory: dict[str, Any] = field(default_factory=dict)
 
     def reset_value(self) -> None:
         """
         Resets the section block to its default state.
         """
         self.element = {}
+        self.accessory = {}
 
     def change_value(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
         """
@@ -257,8 +259,10 @@ class SectionBlock(BaseBlock):
         - *args: Additional positional arguments.
         - **kwargs: Additional keyword arguments, e.g., 'image_url', 'alt_text'.
         """
+        if len(self.element.keys()) == 0:
+            raise KeyError('This needs to have a text to add an image')
         _check_type_keys("type", {"image":["image_url", "alt_text"]}, kwargs)
-        self.element["accessory"] = {
+        self.accessory = {
             "type": "image",
             "image_url": str(kwargs.get("image_url", "")),
             "alt_text": str(kwargs.get("alt_text", ""))
@@ -273,8 +277,12 @@ class SectionBlock(BaseBlock):
         """
         return {
             "type": "section",
-            "text": self.element
-        }
+            "text": self.element,
+            "accessory": self.accessory
+            } if len(self.accessory.keys()) > 0 else {
+                "type": "section",
+                "text": self.element,
+            }
 
 @dataclass
 class ImageBlock(BaseBlock):

@@ -64,7 +64,7 @@ header = HeaderBlock(title="Welcome to the Channel!")
 divider = DividerBlock()
 section = SectionBlock()
 section.change_value(type="mrkdwn", text="This is a *section* with some _rich text_.")
-section.add_image(image_url="https://example.com/image.png", alt_text="Example Image")
+section.add_image(type="image", image_url="https://example.com/image.png", alt_text="Example Image")
 
 slack_message.upload_file("C:/path/to/file.extension", "file.extension")
 
@@ -195,6 +195,7 @@ Represents a Slack section block.
 ### Attributes:
 
 - `element`: Dictionary containing the section content.
+- `accessory`: Dictionary containing the section accessory.
 
 ### Methods:
 
@@ -214,6 +215,7 @@ Represents a Slack section block.
 
   **Description**: Adds an image to the section block.  
   **Required Keys**:  
+  - `type`: The type of the section block content (e.g., `image`).  
   - `image_url`: The URL of the image to be added.  
   - `alt_text`: The alternative text for the image.
 
