@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any
-import os
 
-from dotenv import load_dotenv
-from slack_client import SlackClient
+from .slack_client import SlackClient
 
 def _check_type_keys(base_key: str, type_key_values: dict[str, list[str]], received_values: dict[str, Any]):
     """
@@ -465,14 +463,14 @@ class SlackBlock:
                 block.value() 
             )
 
-    def upload_file(self, file_path: str) -> None:
+    def upload_file(self, file_path: str, filename: str | None = None) -> None:
         """
         Uploads a file to Slack and stores its URL.
 
         Args:
         - file_path (str): Path to the file to be uploaded.
         """
-        upload = self.client.upload(file=file_path) # type: ignore
+        upload = self.client.upload(file= file_path, filename= filename) # type: ignore
         self.files.append(f"<{upload['file']['permalink']}>")
 
     def add_message(self, new_text: str) -> None:
@@ -506,37 +504,11 @@ class SlackBlock:
         Args:
         - channel_id (str): ID of the Slack channel where the message will be posted.
         """
+        concatenated_files: str = '\n'.join(self.files)
         self.client.post_message_block(
             channel_id=channel_id,
             blocks=self.blocks,
-            text=f"{self.text} \n {'\n'.join(self.files)}"
+            text=f"{self.text} \n {concatenated_files}"
         )
 
 
-def main():
-    load_dotenv(override=True)
-
-    header = HeaderBlock(title="This is a header")
-
-    div = DividerBlock()
-
-    block = RichTextBlock()
-
-    block.add_list("ordered",[[{"type":"text", "text": "basketball"}, {"type":"text", "text": " This is your daily alarm", "bold": True}], [{"type":"text", "text": "Hello"}, {"type":"text", "text": " This is your daily alarm", "strike": True}]])
-    
-    client = SlackClient(bot_token = str(os.environ.get("SLACK_BOT_TOKEN")))
-
-    main_block = SlackBlock(client = client)
-
-    main_block.upload_file("C:/Users/sems/Downloads/carmen.csv")
-
-    image = ImageBlock("https://pbs.twimg.com/profile_images/625633822235693056/lNGUneLX_400x400.jpg")
-
-    main_block.add_message("This is a test")
-
-    main_block.add_blocks([header, div, block, image])
-
-    main_block.post_message_block("C07J5ASU9KR")
-    
-if __name__ == "__main__":
-    main()

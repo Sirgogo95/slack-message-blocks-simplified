@@ -1,5 +1,5 @@
 
-# Slack Blocks Package
+# Slack Message Blocks Simplified Package
 
 ## Overview
 
