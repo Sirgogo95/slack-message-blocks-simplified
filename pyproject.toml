@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 [project]
 name = "slack_message_blocks_simplified"
-version = "0.0.2"
+version = "0.0.4"
 authors = [
   { name="Serge Celestin Taveras", email="sergecelestint@gmail.com" },
 ]
@@ -12,7 +12,7 @@ dependencies = [
 ]
 description = "A small package that is used to create blocks in Slack messaging app"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 license = {file = "LICENSE"}
 keywords = ["Slack"]
 classifiers = [
