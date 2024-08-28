@@ -39,7 +39,7 @@ header = HeaderBlock(title="Welcome to the Channel!")
 divider = DividerBlock()
 section = SectionBlock()
 section.change_value(type="mrkdwn", text="This is a *section* with some _rich text_.")
-section.add_image(image_url="https://example.com/image.png", alt_text="Example Image")
+section.add_image(type="image", image_url="https://example.com/image.png", alt_text="Example Image")
 ```
 
 # Upload file
