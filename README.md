@@ -1,322 +1,438 @@
 
-# Slack Message Blocks Simplified Package
 
-## Overview
-
-**slack_message_blocks_simplified** is a Python package that simplifies the process of creating and sending rich, structured messages to Slack channels using blocks. The package provides various classes to help you build and manage these blocks and interact with Slack's API efficiently.
-
-## Installation
-```
-pip install slack-message-blocks-simplified
-```
-
-### Prerequisites
-
+- # Slack Message Blocks Simplified Package
+- ## Overview
+  
+  **slack_message_blocks_simplified** is a Python package that simplifies the process of creating and sending rich, structured messages to Slack channels using blocks. The package provides various classes to help you build and manage these blocks and interact with Slack's API efficiently.
+- ## Installation
+  ```
+  pip install slack-message-blocks-simplified
+  ```
+- ### Prerequisites
 - **Python Version**: Ensure you are using Python 3.12 or higher.
 - **Dependencies**:
-  - `slack_sdk` (version 3.31.0)
-  - `dataclasses` (built-in for Python 3.7+)
-  - `typing` (for type hinting)
+	- `slack_sdk` (version 3.31.0)
+	- `dataclasses` (built-in for Python 3.7+)
+- ## Usage
+- ### Importing the Package
+  
+  ```
+  from slack_message_blocks_simplified import  DividerBlock, HeaderBlock, ContextBlock, SectionBlock, SectionTextElement, SectionTextType, SectionAccessory, ImageBlock, RichTextBlock, SlackBlock, SlackClient
+  ```
+- # Initialize the Slack client and Slack Block
+  ```
+  slack_client = SlackClient(bot_token="xoxb-your-slack-token")
+  slack_message = SlackBlock(client=slack_client)
+  ```
+- # Create a message
+  ```
+  header = HeaderBlock(title="Welcome to the Channel!")
+  divider = DividerBlock()
+  section = SectionBlock()
+  section.change_text_element(
+      element = SectionTextElement(
+          SectionTextType.mrkdwn,
+          "This is a *section* with some _rich text_."
+      )
+  )
+  section.change_text_accessory(
+      accessory = SectionAccessory(
+          image_url= "https://example.com/image.png",
+          alt_text= "Example Image"
+      )
+  )
+  ```
+- # Upload file
+  ```
+  slack_message.upload_file("C:/path/to/file.extension", "file.extension")
+  ```
+- # Post the message to a channel
+  ```
+  slack_message.add_blocks([header, divider, section])
+  slack_message.post_message_block(channel_id="C1234567890")
+  ```
+- # Final code
+  ```
+  from slack_message_blocks_simplified import DividerBlock, HeaderBlock, ContextBlock, SectionBlock, SectionTextElement, SectionTextType, SectionAccessory, ImageBlock, RichTextBlock, SlackBlock, SlackClient
+ 
+  slack_client = SlackClient(bot_token="xoxb-your-slack-token")
+  slack_message = SlackBlock(client=slack_client)
+  
+  header = HeaderBlock(title="Welcome to the Channel!")
+  divider = DividerBlock()
+  section = SectionBlock()
+  section.change_text_element(
+      element = SectionTextElement(
+          SectionTextType.mrkdwn,
+          "This is a *section* with some _rich text_."
+      )
+  )
+  section.change_text_accessory(
+      accessory = SectionAccessory(
+          image_url= "https://example.com/image.png",
+          alt_text= "Example Image"
+      )
+  )
+  
+  slack_message.upload_file("C:/path/to/file.extension", "file.extension")
+  
+  slack_message.add_blocks([header, divider, section])
+  slack_message.post_message_block(channel_id="C1234567890")
+  ```
 
 
-## Usage
-
-### Importing the Package
-
-```
-from slack_message_blocks_simplified import  DividerBlock, HeaderBlock, ContextBlock, SectionBlock, ImageBlock, RichTextBlock, SlackBlock, SlackClient
-```
-
-# Initialize the Slack client and Slack Block
-```
-slack_client = SlackClient(bot_token="xoxb-your-slack-token")
-slack_message = SlackBlock(client=slack_client)
-```
-
-# Create a message
-```
-header = HeaderBlock(title="Welcome to the Channel!")
-divider = DividerBlock()
-section = SectionBlock()
-section.change_value(type="mrkdwn", text="This is a *section* with some _rich text_.")
-section.add_image(type="image", image_url="https://example.com/image.png", alt_text="Example Image")
-```
-
-# Upload file
-```
-slack_message.upload_file("C:/path/to/file.extension", "file.extension")
-```
-
-# Post the message to a channel
-```
-slack_message.add_blocks([header, divider, section])
-slack_message.post_message_block(channel_id="C1234567890")
-```
-
-# Final code
-```
-from slack_message_blocks_simplified import DividerBlock, HeaderBlock, ContextBlock, SectionBlock, ImageBlock, RichTextBlock, SlackBlock, SlackClient
-
-slack_client = SlackClient(bot_token="xoxb-your-slack-token")
-slack_message = SlackBlock(client=slack_client)
-
-header = HeaderBlock(title="Welcome to the Channel!")
-divider = DividerBlock()
-section = SectionBlock()
-section.change_value(type="mrkdwn", text="This is a *section* with some _rich text_.")
-section.add_image(type="image", image_url="https://example.com/image.png", alt_text="Example Image")
-
-slack_message.upload_file("C:/path/to/file.extension", "file.extension")
-
-slack_message.add_blocks([header, divider, section])
-slack_message.post_message_block(channel_id="C1234567890")
-```
 
 
 # Classes and Methods
 
-## 1. SlackClient
-A client for interacting with Slack's API.
+## 1. DividerBlock
+Represents a Slack divider block, used to create visual separators.
+
+### Methods:
+
+- **`value()`**:
+
+  **Description**: Retrieves the structure of the divider block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the type set to "divider".
+
+## 2. HeaderBlock
+Represents a Slack header block, used to display a title.
 
 ### Attributes:
 
-- `bot_token`: The token used for authenticating the bot with Slack's API. To get this token you must have a [Slack app](https://api.slack.com/docs/apps) created and it requires the following OAuth Scopes: 
-`chat:write`, `files:write`
+- `title (str | None)`: The text of the header title.
 
 ### Methods:
 
-- `post_message_block(channel_id: str, blocks: Any | None, text: str = "")`:
+- **`reset_value()`**:
 
-  **Description**: Posts a message with optional blocks to a specific Slack channel.  
-  **Required Keys**:  
-  - `channel_id`: The ID of the Slack channel where the message will be posted.  
-  - `blocks`: A list of blocks (formatted sections) to include in the message. Can be `None`.  
-  - `text`: The plain text content of the message.
+  **Description**: Resets the header title to `None`.  
+  **Args**: None.
 
-- `upload(file: str | bytes | IOBase | None, filename: str | None)`:
+- **`append(title: str)`**:
 
-  **Description**: Uploads a file to Slack, optionally with a specified filename.  
-  **Required Keys**:  
-  - `file`: The file to upload. It can be a path to a file, bytes, or an IO stream.  
-  - `filename`: The name to use for the file in Slack. If `None`, Slack determines the name automatically.
+  **Description**: Appends text to the existing header title.  
+  **Args**:  
+  - `title (str)`: Text to append to the current title.
 
-## 2. SlackBlock
-Represents a message block to be sent via Slack.
+- **`value()`**:
+
+  **Description**: Retrieves the structure of the header block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary containing the header type and its text.
+
+## 3. ContextBlock
+Represents a Slack context block, used to display context or additional information.
 
 ### Attributes:
 
-- `client`: An instance of `SlackClient`.
-- `text`: Text content of the message.
-- `blocks`: List of blocks to be included in the message.
-- `files`: List of file URLs to be attached to the message.
+- `elements (list[ContextSubBlock])`: A list of elements in the context block.
 
 ### Methods:
 
-- `add_blocks(blocks: list[BaseBlock])`:
+- **`reset_value()`**:
 
-  **Description**: Adds multiple blocks to the Slack message.  
-  **Required Keys**:  
-  - `blocks`: A list of `BaseBlock` objects (e.g., `HeaderBlock`, `SectionBlock`) to be added to the message.
+  **Description**: Clears all elements from the context block.  
+  **Args**: None.
 
-- `upload_file(file_path: str, filename: str | None = None)`:
+- **`add_context_sub_blocks(context_sub_block: list[ContextSubBlock])`**:
 
-  **Description**: Uploads a file to Slack and stores its URL.  
-  **Required Keys**:  
-  - `file_path`: Path to the file that will be uploaded.  
-  - `filename`: Optional. The name to use for the file in Slack. If `None`, Slack determines the name automatically.
+  **Description**: Adds sub-blocks to the context block.  
+  **Args**:  
+  - `context_sub_block (list[ContextSubBlock])`: The sub-blocks to add.
 
-- `add_message(new_text: str)`:
+- **`value()`**:
 
-  **Description**: Appends additional text to the existing message.  
-  **Required Keys**:  
-  - `new_text`: The text to append to the current message.
+  **Description**: Retrieves the structure of the context block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary containing the context type and its elements.
 
-- `change_message(new_text: str)`:
-
-  **Description**: Replaces the existing message with new text.  
-  **Required Keys**:  
-  - `new_text`: The new text that will replace the current message content.
-
-- `reset_message()`:
-
-  **Description**: Resets the message text to an empty string.  
-  **Required Keys**: None
-
-- `post_message_block(channel_id: str)`:
-
-  **Description**: Posts the message block to a specified Slack channel.  
-  **Required Keys**:  
-  - `channel_id`: The ID of the Slack channel where the message will be posted.
-
-## 3. HeaderBlock
-Represents a Slack header block.
+## 4. SectionBlock
+Represents a Slack section block, used to display text and optional accessories.
 
 ### Attributes:
 
-- `title`: Title of the header.
+- `element (SectionTextElement | None)`: The main content of the section.
+- `accessory (SectionAccessory | None)`: An optional accessory for the section.
 
 ### Methods:
 
-- `reset_value()`:
+- **`reset_value()`**:
 
-  **Description**: Resets the title of the header block.  
-  **Required Keys**: None
+  **Description**: Resets the section content and accessory to `None`.  
+  **Args**: None.
 
-- `change_value(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`change_text_element(element: SectionTextElement)`**:
 
-  **Description**: Changes the title of the header block.  
-  **Required Keys**:  
-  - `title`: The new title for the header block.
+  **Description**: Updates the content of the section.  
+  **Args**:  
+  - `element (SectionTextElement)`: The new text element for the section.
 
-- `append(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`change_text_accessory(accessory: SectionAccessory)`**:
 
-  **Description**: Appends text to the existing title.  
-  **Required Keys**:  
-  - `title`: The text to append to the existing title.
+  **Description**: Updates the accessory of the section.  
+  **Args**:  
+  - `accessory (SectionAccessory)`: The new accessory for the section.
 
-- `value() -> dict[str, Any]`:
+- **`value()`**:
 
-  **Description**: Retrieves the value of the header block.  
-  **Required Keys**: None (Returns a dictionary with the header type and title)
+  **Description**: Retrieves the structure of the section block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary containing the section type, text, and optional accessory.  
+  **Raises**:  
+  - `ValueError`: If the `element` attribute is `None`.
 
-## 4. DividerBlock
-Represents a Slack divider block.
-
-### Methods:
-
-- `value() -> dict[str, Any]`:
-
-  **Description**: Retrieves the value of the divider block.  
-  **Required Keys**: None (Returns a dictionary with the divider type)
-
-## 5. SectionBlock
-Represents a Slack section block.
+## 5. ImageBlock
+Represents a Slack image block, used to display an image with optional title and alternative text.
 
 ### Attributes:
 
-- `element`: Dictionary containing the section content.
-- `accessory`: Dictionary containing the section accessory.
+- `image_url (str | None)`: The URL of the image.
+- `title (str | None)`: The title of the image block (optional).
+- `alt_text (str | None)`: The alternative text for the image.
+- `is_markdown (bool)`: Indicates whether the title is in Markdown format.
 
 ### Methods:
 
-- `reset_value()`:
+- **`reset_value()`**:
 
-  **Description**: Resets the section block to its default state.  
-  **Required Keys**: None
+  **Description**: Resets all properties of the image block to their default state.  
+  **Args**: None.
 
-- `change_value(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`change_values(image_url: str | None = None, title: str | None = None, alt_text: str | None = None, is_markdown: bool | None = None)`**:
 
-  **Description**: Changes the content of the section block.  
-  **Required Keys**:  
-  - `type`: The type of the section block content (e.g., `plain_text`, `mrkdwn`).  
-  - `text`: The text content of the section block.
+  **Description**: Updates the properties of the image block.  
+  **Args**:  
+  - `image_url (str | None)`: The new URL of the image.  
+  - `title (str | None)`: The new title for the image block.  
+  - `alt_text (str | None)`: The new alternative text for the image.  
+  - `is_markdown (bool | None)`: Whether the title should be in Markdown format.
 
-- `add_image(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`value()`**:
 
-  **Description**: Adds an image to the section block.  
-  **Required Keys**:  
-  - `type`: The type of the section block content (e.g., `image`).  
-  - `image_url`: The URL of the image to be added.  
-  - `alt_text`: The alternative text for the image.
+  **Description**: Retrieves the structure of the image block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary containing the image block details.  
+  **Raises**:  
+  - `ValueError`: If the `image_url` attribute is `None`.
 
-- `value() -> dict[str, Any]`:
-
-  **Description**: Retrieves the value of the section block.  
-  **Required Keys**: None (Returns a dictionary with section type and content)
-
-## 6. ImageBlock
-Represents a Slack image block.
+## 6. RichTextBlock
+Represents a Slack rich text block, used for more complex formatting and layout.
 
 ### Attributes:
 
-- `image_url`: URL of the image.
-- `title`: Optional. Title of the image block.
-- `alt_text`: Alternative text for the image.
-- `is_markdown`: Indicates if the title is in Markdown format.
+- `sections (list[RichTextList | RichTextSection])`: A list of rich text sections and lists.
 
 ### Methods:
 
-- `reset_value()`:
+- **`reset_value()`**:
 
-  **Description**: Resets the image block to its default state.  
-  **Required Keys**: None
+  **Description**: Clears all sections from the rich text block.  
+  **Args**: None.
 
-- `change_value(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`add_sections_and_lists(elements: list[RichTextList | RichTextSection])`**:
 
-  **Description**: Changes the properties of the image block.  
-  **Required Keys**:  
-  - `image_url`: The new URL of the image.  
-  - `title`: The new title for the image block.  
-  - `alt_text`: The new alternative text for the image.  
-  - `is_markdown`: Boolean indicating if the title should be in Markdown format.
+  **Description**: Adds sections and lists to the rich text block.  
+  **Args**:  
+  - `elements (list[RichTextList | RichTextSection])`: A list of rich text sections and lists to add.
 
-- `value() -> dict[str, Any]`:
+- **`value()`**:
 
-  **Description**: Retrieves the value of the image block.  
-  **Required Keys**: None (Returns a dictionary with image block details)
+  **Description**: Retrieves the structure of the rich text block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary containing the rich text block details.
 
-## 7. ContextBlock
-Represents a Slack context block.
+## 7. SlackBlock
+Represents a message block to be sent via Slack, which includes text, rich blocks, and files.
 
 ### Attributes:
 
-- `elements`: List of elements within the context block.
+- `client (SlackClient)`: The Slack client used for API communication.
+- `text (str)`: The main text content of the message.
+- `blocks (list[dict[str, Any]])`: A list of structured blocks for the message.
+- `files (list[str])`: A list of file URLs to be attached to the message.
 
 ### Methods:
 
-- `reset_value()`:
+- **`add_blocks(blocks: list[BaseBlock])`**:
 
-  **Description**: Resets the elements of the context block.  
-  **Required Keys**: None
+  **Description**: Adds multiple structured blocks to the Slack message.  
+  **Args**:  
+  - `blocks (list[BaseBlock])`: A list of block objects to add.
 
-- `append(*args: list[Any], **kwargs: dict[str, Any])`:
+- **`upload_file(file_path: str, filename: str | None = None)`**:
 
-  **Description**: Appends an element to the context block.  
-  **Required Keys**:  
-  - `type`: The type of the element (e.g., `image`, `plain_text`, `mrkdwn`).  
-    - For `image` type:  
-      - `image_url`: The URL of the image.  
-      - `alt_text`: The alternative text for the image.  
-    - For `plain_text` and `mrkdwn` types:  
-      - `text`: The text content of the element.
+  **Description**: Uploads a file to Slack and stores its permalink.  
+  **Args**:  
+  - `file_path (str)`: The local path of the file to upload.  
+  - `filename (str | None)`: An optional custom filename for the uploaded file.
 
-- `value() -> dict[str, Any]`:
+- **`add_message(new_text: str)`**:
 
-  **Description**: Retrieves the value of the context block.  
-  **Required Keys**: None (Returns a dictionary with context type and elements)
+  **Description**: Appends additional text to the current message.  
+  **Args**:  
+  - `new_text (str)`: The text to append to the existing message.
 
-## 8. RichTextBlock
-Represents a Slack rich text block.
+- **`change_message(new_text: str)`**:
+
+  **Description**: Replaces the existing message text with new content.  
+  **Args**:  
+  - `new_text (str)`: The new text that will replace the current message content.
+
+- **`reset_message()`**:
+
+  **Description**: Clears the message text.  
+  **Args**: None.
+
+- **`post_message_block(channel_id: str)`**:
+
+  **Description**: Sends the message block to a specified Slack channel.  
+  **Args**:  
+  - `channel_id (str)`: The ID of the Slack channel where the message will be posted.
+
+# Additional Classes
+
+## 1. BaseBlock
+Base class for Slack blocks, providing a template for implementing different types of Slack blocks.
+
+### Methods:
+
+- **`reset_value()`**:
+
+  **Description**: Resets the value of the block to its default state.  
+  **Raises**:  
+  - `NotImplementedError`: If the method is not implemented by subclasses.
+
+- **`value()`**:
+
+  **Description**: Retrieves the dictionary representation of the block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary representation of the block.  
+  **Raises**:  
+  - `NotImplementedError`: If the method is not implemented by subclasses.
+
+## 2. ContextSubBlock
+Represents a context sub-block for Slack messages.
 
 ### Attributes:
 
-- `sections`: List of rich text sections.
+- `type (ContextSubBlockType)`: The type of the context block (e.g., text or image).  
+- `text (str | None)`: Text content for the block, if applicable.  
+- `image_url (str | None)`: Image URL for the block, if applicable.  
+- `alt_text (str | None)`: Alternate text for the image, if applicable.
 
 ### Methods:
 
-- `reset_value()`:
+- **`value()`**:
 
-  **Description**: Resets the sections of the rich text block.  
-  **Required Keys**: None
+  **Description**: Retrieves the dictionary representation of the context sub-block.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the context block's type and elements.  
+  **Raises**:  
+  - `ValueError`: If required attributes for the block type are missing.
 
-- `add_section(text_list: list[dict[str, Any]])`:
+## 3. RichTextElement
+Represents a rich text element within a Slack block.
 
-  **Description**: Adds a new section to the rich text block.  
-  **Required Keys**:  
-  - `text_list`: A list of dictionaries, each representing a text element with keys like `type`, `text`, `bold`, `italic`, `strike`, etc.
+### Attributes:
 
-- `add_list(list_style: str, text_list: list[list[dict[str, Any]]])`:
+- `type (RichTextElementType)`: The type of the rich text element (e.g., text, emoji, link).  
+- `text (str | None)`: Text content of the element, if applicable.  
+- `styles (list[RichTextElementStyle] | None)`: A list of styles applied to the element, if applicable.  
+- `name (str | None)`: Name for emoji elements, if applicable.  
+- `url (str | None)`: URL for link elements, if applicable.
 
-  **Description**: Adds a list to the rich text block.  
-  **Required Keys**:  
-  - `list_style`: The style of the list (e.g., `bullet`, `ordered`).  
-  - `text_list`: A list of lists, where each inner list represents items in the list with text elements.
+### Methods:
 
-- `value() -> dict[str, Any]`:
+- **`value()`**:
 
-  **Description**: Retrieves the value of the rich text block.  
-  **Required Keys**: None (Returns a dictionary with rich text block details)
+  **Description**: Retrieves the dictionary representation of the rich text element.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the element's type and attributes.  
+  **Raises**:  
+  - `ValueError`: If required attributes for the element type are missing.
 
+## 4. RichTextSection
+Represents a rich text section containing multiple rich text elements.
+
+### Attributes:
+
+- `type (RichTextSectionType)`: The type of the rich text section.  
+- `elements (list[RichTextElement])`: A list of rich text elements in this section.
+
+### Methods:
+
+- **`add_rich_text_elements(rich_text_element: list[RichTextElement])`**:
+
+  **Description**: Adds rich text elements to the section.  
+  **Args**:  
+  - `rich_text_element (list[RichTextElement])`: A list of rich text elements to add.
+
+- **`value()`**:
+
+  **Description**: Retrieves the dictionary representation of the rich text section.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the section's type and elements.
+
+## 5. RichTextList
+Represents a list of rich text sections in a Slack block.
+
+### Attributes:
+
+- `type (RichTextListType)`: The style of the list (e.g., numbered, bulleted).  
+- `elements (list[RichTextSection])`: A list of rich text sections in this list.
+
+### Methods:
+
+- **`add_rich_text_sections(rich_text_sections: list[RichTextSection])`**:
+
+  **Description**: Adds rich text sections to the list.  
+  **Args**:  
+  - `rich_text_sections (list[RichTextSection])`: A list of rich text sections to add.  
+  **Raises**:  
+  - `ValueError`: If any section does not match the type required for the list.
+
+- **`value()`**:
+
+  **Description**: Retrieves the dictionary representation of the rich text list.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the list's type, style, and elements.
+
+## 6. SectionTextElement
+Represents a text element within a section block.
+
+### Attributes:
+
+- `type (SectionTextType)`: The type of text (e.g., plain_text or mrkdwn).  
+- `text (str)`: The content of the text.
+
+### Methods:
+
+- **`value()`**:
+
+  **Description**: Retrieves the dictionary representation of the section text element.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the text element's type and content.
+
+## 7. SectionAccessory
+Represents an accessory for a section block, such as an image.
+
+### Attributes:
+
+- `image_url (str)`: The URL of the image.  
+- `alt_text (str)`: Alternate text for the image.
+
+### Methods:
+
+- **`value()`**:
+
+  **Description**: Retrieves the dictionary representation of the section accessory.  
+  **Returns**:  
+  - `dict[str, Any]`: A dictionary with the accessory's type, image URL, and alternate text.
+
+
+---
 
 If you'd like to contribute to this project, please fork the repository and submit a pull request. All contributions are welcome!
 

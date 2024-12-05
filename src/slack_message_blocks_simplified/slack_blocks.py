@@ -2,104 +2,22 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .slack_client import SlackClient
+from .slack_base_elements import BaseBlock, ContextSubBlock, RichTextList, RichTextSection, SectionTextElement, SectionAccessory
 
-def _check_type_keys(base_key: str, type_key_values: dict[str, list[str]], received_values: dict[str, Any]):
-    """
-    Checks for necessary keys in a dictionary based on a base key's value.
-
-    Args:
-    - base_key (str): The key in `received_values` whose value determines the required keys.
-    - type_key_values (dict[str, list[str]]): A dictionary where keys correspond to possible values of `base_key`, 
-      and values are lists of keys that are required when `base_key` has that specific value.
-    - received_values (dict[str, Any]): The dictionary of received values to be checked.
-
-    Raises:
-    - KeyError: If the `base_key` is missing from `received_values` or if any of the necessary keys specified in 
-      `type_key_values` are missing from `received_values`.
-
-    Notes:
-    - The function first checks if `base_key` is present in `received_values`.
-    - If present, it checks if all required keys are also present, based on the value of `base_key`.
-    - If `base_key` is missing or any necessary keys are missing, a `KeyError` is raised with a descriptive message.
-    """
-    if base_key in received_values.keys():
-        for necessary_key in type_key_values[received_values[base_key]]:
-            if necessary_key not in received_values.keys():
-                raise KeyError(f'if {base_key} has a value of {received_values[base_key]} the following keys are required: {", ".join(type_key_values[received_values[base_key]])}')
-    else:
-        raise KeyError(f'A value is required for the "{base_key}" key. Possible values: {", ".join(type_key_values.keys())}')
-
-
-
-@dataclass
-class BaseBlock:
-    """
-    Base class for Slack blocks.
-
-    Provides a template for different types of Slack blocks to implement.
-    """
-
-    def reset_value(self) -> None:
-        """
-        Resets the value of the block to its default state.
-
-        Notes:
-        - Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses should implement this method")
-    
-    def change_value(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
-        """
-        Changes the value of the block.
-
-        Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments.
-
-        Notes:
-        - Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses should implement this method")
-
-    def append(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
-        """
-        Appends data to the block.
-
-        Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments.
-
-        Notes:
-        - Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses should implement this method")
-
-    def value(self) -> dict[str, Any]:
-        """
-        Retrieves the value of the block in dictionary form.
-
-        Returns:
-        - dict[str, Any]: Dictionary representation of the block.
-
-        Notes:
-        - Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses should implement this method")
-    
 @dataclass
 class DividerBlock(BaseBlock):
     """
     Divider block class.
 
-    Represents a Slack divider block.
+    Represents a Slack divider block, used to create visual separators.
     """
 
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the divider block.
+        Retrieves the structure of the divider block.
 
         Returns:
-        - dict[str, Any]: Dictionary with divider type.
+            dict[str, Any]: A dictionary with the type set to "divider".
         """
         return {
 			"type": "divider"
@@ -110,48 +28,34 @@ class HeaderBlock(BaseBlock):
     """
     Header block class.
 
-    Represents a Slack header block.
+    Represents a Slack header block, used to display a title.
 
     Attributes:
-    - title (str): Title of the header.
+        title (str): The text of the header title.
     """
-    title: str = ""
+    title: str|None = None
 
     def reset_value(self) -> None:
         """
-        Resets the title of the header block.
+        Resets the header title to None.
         """
-        self.title = ""
-
-    def change_value(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
-        """
-        Changes the title of the header block.
-
-        Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'title' to change the title.
-        """
-        _check_type_keys("title", {}, kwargs)
-        self.title = str(kwargs.get("title", self.title))
+        self.title = None
     
-    def append(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def append(self, *, title: str) -> None:
         """
-        Appends text to the existing title.
+        Adds text to the existing header title.
 
         Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'title' to append to the title.
+            title (str): Text to append to the current title.
         """
-        _check_type_keys("title", {}, kwargs)
-        new_data: str = str(kwargs.get("title", ""))
-        self.title = f"{self.title} {new_data}"
+        self.title = f"{self.title} {title}" if self.title is not None else title
 
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the header block.
+        Retrieves the structure of the header block.
 
         Returns:
-        - dict[str, Any]: Dictionary with header type and title.
+            dict[str, Any]: A dictionary containing the header type and its text.
         """
         return {
 			"type": "header",
@@ -167,53 +71,40 @@ class ContextBlock(BaseBlock):
     """
     Context block class.
 
-    Represents a Slack context block.
+    Represents a Slack context block, used to display context or additional information.
 
     Attributes:
-    - elements (list[dict[str, Any]]): List of elements within the context block.
+        elements (list[ContextSubBlock]): A list of elements in the context block.
     """
-    elements: list[dict[str, Any]] = field(default_factory=list)
+    elements: list[ContextSubBlock] = field(default_factory=list)
 
     def reset_value(self) -> None:
         """
-        Resets the elements of the context block.
+        Clears all elements from the context block.
         """
         self.elements = []
 
-    def append(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def add_context_sub_blocks(self, *, context_sub_block: list[ContextSubBlock]) -> None:
         """
-        Appends an element to the context block.
+        Adds sub-blocks to the context block.
 
         Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'image_url', 'alt_text', 'type', 'text'.
+            context_sub_block (list[ContextSubBlock]): The sub-blocks to add.
         """
-        _check_type_keys("type", {"image":["image_url", "alt_text"], "plain_text":["text"], "mrkdwn":["text"]}, kwargs)
-        self.elements.append(
-            {
-                "type": "image",
-                "image_url": str(kwargs.get("image_url", "")),
-                "alt_text": str(kwargs.get("alt_text", ""))
-            }
-            if "image_url" in kwargs.keys() else
-            {
-                "type": str(kwargs.get("type", "plain_text")),
-                "text": str(kwargs.get("text", "plain_text")),
-                "emoji": True 
-            }
-        )
+        self.elements.extend(context_sub_block)
+
     
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the context block.
+        Retrieves the structure of the context block.
 
         Returns:
-        - dict[str, Any]: Dictionary with context type and elements.
+            dict[str, Any]: A dictionary containing the context type and its elements.
         """
         return {
             "type": "context",
             "elements": [
-                element for element in self.elements
+                element.value() for element in self.elements
             ]
         }
 
@@ -222,66 +113,60 @@ class SectionBlock(BaseBlock):
     """
     Section block class.
 
-    Represents a Slack section block.
+    Represents a Slack section block, used to display text and optional accessories.
 
     Attributes:
-    - element (dict[str, Any]): Dictionary containing the section content.
+        element (SectionTextElement | None): The main content of the section.
+        accessory (SectionAccessory | None): An optional accessory for the section.
     """
-    element: dict[str, Any] = field(default_factory=dict)
-    accessory: dict[str, Any] = field(default_factory=dict)
+    element: SectionTextElement|None = None
+    accessory: SectionAccessory|None = None
 
     def reset_value(self) -> None:
         """
-        Resets the section block to its default state.
+        Resets the section content and accessory to None.
         """
-        self.element = {}
-        self.accessory = {}
+        self.element = None
+        self.accessory = None
 
-    def change_value(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def change_text_element(self, *, element: SectionTextElement) -> None:
         """
-        Changes the content of the section block.
-
-        Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'type', 'text'.
-        """
-        _check_type_keys("type", {"plain_text":["text"], "mrkdwn":["text"]}, kwargs)
-        self.element = {
-            "type": str(kwargs.get("type", "plain_text")),
-            "text": str(kwargs.get("text", "plain_text")),
-        }
-    
-    def add_image(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
-        """
-        Adds an image to the section block.
+        Updates the content of the section.
 
         Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'image_url', 'alt_text'.
+            element (SectionTextElement): The new text element for the section.
         """
-        if len(self.element.keys()) == 0:
-            raise KeyError('This needs to have a text to add an image')
-        _check_type_keys("type", {"image":["image_url", "alt_text"]}, kwargs)
-        self.accessory = {
-            "type": "image",
-            "image_url": str(kwargs.get("image_url", "")),
-            "alt_text": str(kwargs.get("alt_text", ""))
-        }
+        self.element = element
+
+    def change_text_accessory(self, *, accessory: SectionAccessory) -> None:
+        """
+        Updates the accessory of the section.
+
+        Args:
+            accessory (SectionAccessory): The new accessory for the section.
+        """
+        self.accessory = accessory
     
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the section block.
+        Retrieves the structure of the section block.
 
         Returns:
-        - dict[str, Any]: Dictionary with section type and content.
+            dict[str, Any]: A dictionary containing the section type, text, and optional accessory.
+
+        Raises:
+            ValueError: If the element attribute is None.
         """
+        if self.element is None:
+            raise ValueError("element attribute must not be None")
+
         return {
             "type": "section",
-            "text": self.element,
-            "accessory": self.accessory
-            } if len(self.accessory.keys()) > 0 else {
+            "text": self.element.value(),
+            "accessory": self.accessory.value()
+            } if self.accessory is not None else {
                 "type": "section",
-                "text": self.element,
+                "text": self.element.value(),
             }
 
 @dataclass
@@ -289,155 +174,114 @@ class ImageBlock(BaseBlock):
     """
     Image block class.
 
-    Represents a Slack image block.
+    Represents a Slack image block, used to display an image with optional title and alternative text.
 
     Attributes:
-    - image_url (str): URL of the image.
-    - title (str | None): Optional. Title of the image block.
-    - alt_text (str): Alternative text for the image.
-    - is_markdown (bool): Indicates if the title is in Markdown format.
+        image_url (str | None): The URL of the image.
+        title (str | None): The title of the image block (optional).
+        alt_text (str | None): The alternative text for the image.
+        is_markdown (bool): Indicates whether the title is in Markdown format.
     """
-    image_url: str
+    image_url: str|None = None
     title: str | None = None
-    alt_text: str = ""
+    alt_text: str|None = None
     is_markdown: bool = False
 
     def reset_value(self) -> None:
         """
-        Resets the image block to its default state.
+        Resets all properties of the image block to their default state.
         """
+        self.image_url = None
         self.title = None
-        self.alt_text = ""
+        self.alt_text = None
         self.is_markdown = False
 
-    def change_value(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def change_values(self, *, image_url: str|None = None, title: str | None = None, alt_text: str|None = None, is_markdown: bool|None = None) -> None:
         """
-        Changes the properties of the image block.
+        Updates the properties of the image block.
 
         Args:
-        - *args: Additional positional arguments.
-        - **kwargs: Additional keyword arguments, e.g., 'image_url', 'title', 'alt_text', 'is_markdown'.
+            image_url (str | None): The URL of the image.
+            title (str | None): The title of the image block.
+            alt_text (str | None): The alternative text for the image.
+            is_markdown (bool | None): Whether the title is in Markdown format.
         """
-        self.image_url = str(kwargs.get("image_url", self.image_url))
-        self.title = kwargs.get("title", self.title)  # type: ignore
-        self.alt_text = str(kwargs.get("alt_text", self.alt_text))
-        self.is_markdown = bool(kwargs.get("is_markdown", self.is_markdown))
+        self.image_url = image_url if image_url is not None else self.image_url
+        self.title = title if title is not None else self.title
+        self.alt_text = alt_text if alt_text is not None else self.alt_text
+        self.is_markdown = is_markdown if is_markdown is not None else self.is_markdown
 
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the image block.
+        Retrieves the structure of the image block.
 
         Returns:
-        - dict[str, Any]: Dictionary with image block details.
+            dict[str, Any]: A dictionary containing the image block details.
+
+        Raises:
+            ValueError: If the image_url attribute is None.
         """
+        if self.image_url is None:
+            raise ValueError("image_url attribute cannot be None.")
+        
+        result: dict[str, Any]
+        
         if self.title is not None:
-            return {
+            result = {
                 "type": "image",
                 "title": {
                     "type": "mrkdwn" if self.is_markdown else "plain_text",
                     "text": self.title
                 },
                 "image_url": self.image_url,
-                "alt_text": self.alt_text
             }
         else:
-            return {
+            result =  {
                 "type": "image",
                 "image_url": self.image_url,
-                "alt_text": self.alt_text
             }
+        if self.alt_text is not None:
+            result["alt_text"] = self.alt_text
+        return result
 
 @dataclass
 class RichTextBlock(BaseBlock):
     """
     Rich text block class.
 
-    Represents a Slack rich text block.
+    Represents a Slack rich text block, used for more complex formatting and layout.
 
     Attributes:
-    - sections (list[dict[str, Any]]): List of rich text sections.
+        sections (list[RichTextList | RichTextSection]): A list of rich text sections and lists.
     """
-    sections: list[dict[str, Any]] = field(default_factory=list)
+    sections: list[RichTextList|RichTextSection] = field(default_factory=list)
 
     def reset_value(self) -> None:
         """
-        Resets the sections of the rich text block.
+        Clears all sections from the rich text block.
         """
         self.sections = []
-
-    def _create_section(self, text_list: list[dict[str, Any]]) -> dict[str, Any]:
+    
+    def add_sections_and_lists(self, *, elements: list[RichTextList|RichTextSection]):
         """
-        Creates a rich text section.
+        Adds sections and lists to the rich text block.
 
         Args:
-        - text_list (list[dict[str, Any]]): List of text elements.
-
-        Returns:
-        - dict[str, Any]: Dictionary representing a rich text section.
+            elements (list[RichTextList | RichTextSection]): A list of rich text sections and lists to add.
         """
-        for element in text_list:
-            _check_type_keys("type", {"text":["text"], "emoji":["name"]}, element)
-        return {
-                "type": "rich_text_section",
-                "elements": [
-                    {
-                        "type": "text",
-                        "text": element.get("text", ""),
-                        "style": {
-                            "bold": element.get("bold", False),
-                            "italic": element.get("italic", False),
-                            "strike": element.get("strike", False),
-                        }
-                    } 
-                    if "text" in element.keys() else 
-                    {
-                        "type": "emoji",
-                        "name": element.get("name", "")
-                    } 
-                    for element in text_list
-                ]
-            }
-
-    def add_section(self, text_list: list[dict[str, Any]]) -> None:
-        """
-        Adds a new section to the rich text block.
-
-        Args:
-        - text_list (list[dict[str, Any]]): List of text elements.
-        """
-        self.sections.append(
-            self._create_section(text_list)
-        )
-
-    def add_list(self, list_style: str, text_list: list[list[dict[str, Any]]]) -> None:
-        """
-        Adds a list to the rich text block.
-
-        Args:
-        - list_style (str): Style of the list (e.g., 'bullet', 'ordered').
-        - text_list (list[list[dict[str, Any]]]): List of text elements grouped by list items.
-        """
-        self.sections.append(
-            {
-                "type": "rich_text_list",
-                "style": list_style,
-                "elements": [
-                    self._create_section(element) for element in text_list
-                ]
-            }
-        )
+        self.sections.extend(elements)
 
     def value(self) -> dict[str, Any]:
         """
-        Retrieves the value of the rich text block.
+        Retrieves the structure of the rich text block.
 
         Returns:
-        - dict[str, Any]: Dictionary with rich text block details.
+            dict[str, Any]: A dictionary containing the rich text block details.
         """
         return {
             "type": "rich_text",
             "elements": [
-                element for element in self.sections
+                element.value() for element in self.sections
             ]
         }
 
@@ -446,76 +290,79 @@ class SlackBlock:
     """
     Slack block class.
 
-    Represents a message block to be sent via Slack.
+    Represents a message block to be sent via Slack, which includes text, rich blocks, and files.
 
     Attributes:
-    - client (SlackClient): Slack client used to send the message.
-    - text (str): Text content of the message.
-    - blocks (list[dict[str, Any]]): List of blocks to be included in the message.
-    - files (list[str]): List of file URLs to be attached to the message.
+        client (SlackClient): The Slack client used for API communication.
+        text (str): The main text content of the message.
+        blocks (list[dict[str, Any]]): A list of structured blocks for the message.
+        files (list[str]): A list of file URLs to be attached to the message.
     """
     client: SlackClient
     text: str = ""
-    blocks: list[dict[str, Any]] = field(default_factory=list)
+    blocks: list[BaseBlock] = field(default_factory=list)
     files: list[str] = field(default_factory=list)
 
     def add_blocks(self, blocks: list[BaseBlock]) -> None:
         """
-        Adds multiple blocks to the Slack message.
+        Adds multiple structured blocks to the Slack message.
 
         Args:
-        - blocks (list[BaseBlock]): List of block objects to be added.
+            blocks (list[BaseBlock]): A list of block objects to add.
         """
-        for block in blocks:
-            self.blocks.append(
-                block.value() 
-            )
+        self.blocks.extend(blocks)
 
-    def upload_file(self, file_path: str, filename: str | None = None) -> None:
+    def upload_file(self, *, file_path: str, filename: str | None = None) -> None:
         """
-        Uploads a file to Slack and stores its URL.
+        Uploads a file to Slack and stores its permalink.
 
         Args:
-        - file_path (str): Path to the file to be uploaded.
+            file_path (str): The local path of the file to upload.
+            filename (str | None): An optional custom filename for the uploaded file.
         """
         upload = self.client.upload(file= file_path, filename= filename) # type: ignore
         self.files.append(f"<{upload['file']['permalink']}>")
 
-    def add_message(self, new_text: str) -> None:
+    def add_message(self, *, new_text: str) -> None:
         """
-        Appends additional text to the existing message.
+        Appends additional text to the current message.
 
         Args:
-        - new_text (str): Text to be appended.
+            new_text (str): The text to append to the existing message.
         """
         self.text = f"{self.text}{new_text}"
     
-    def change_message(self, new_text: str) -> None:
+    def change_message(self, *, new_text: str) -> None:
         """
-        Replaces the existing message with new text.
+        Replaces the existing message text with new content.
 
         Args:
-        - new_text (str): New text for the message.
+            new_text (str): The new text for the message.
         """
         self.text = new_text
 
     def reset_message(self) -> None:
         """
-        Resets the message text to an empty string.
+        Clears the message text.
         """
         self.text = ""
 
-    def post_message_block(self, channel_id: str) -> None:
+    def post_message_block(self, *, channel_id: str) -> None:
         """
-        Posts the message block to a specified Slack channel.
+        Sends the message block to a specified Slack channel.
 
         Args:
-        - channel_id (str): ID of the Slack channel where the message will be posted.
+            channel_id (str): The ID of the Slack channel where the message will be posted.
         """
+        blocks_repr: list[dict[str, Any]] = []
+        for block in self.blocks:
+            blocks_repr.append(
+                block.value() 
+            )
         concatenated_files: str = '\n'.join(self.files)
         self.client.post_message_block(
             channel_id=channel_id,
-            blocks=self.blocks,
+            blocks=blocks_repr,
             text=f"{self.text} \n {concatenated_files}"
         )
 
