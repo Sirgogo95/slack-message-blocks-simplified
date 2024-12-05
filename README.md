@@ -431,7 +431,30 @@ Represents an accessory for a section block, such as an image.
   **Returns**:  
   - `dict[str, Any]`: A dictionary with the accessory's type, image URL, and alternate text.
 
+## 8. SlackClient
+A client for interacting with Slack's API.
 
+### Attributes:
+
+- `bot_token (str)`: The token used for authenticating the bot with Slack's API. To get this token you must have a [Slack app](https://api.slack.com/docs/apps) created and it requires the following OAuth Scopes: 
+`chat:write`, `files:write`
+
+### Methods:
+
+- **`post_message_block(channel_id: str, blocks: Any | None, text: str = "")`**:
+
+  **Description**: Posts a message with optional blocks to a specific Slack channel.  
+  **Args**:  
+  - `channel_id`: The ID of the Slack channel where the message will be posted.  
+  - `blocks`: A list of blocks (formatted sections) to include in the message. Can be `None`.  
+  - `text`: The plain text content of the message.
+
+- **`upload(file: str | bytes | IOBase | None, filename: str | None)`**:
+
+  **Description**: Uploads a file to Slack, optionally with a specified filename.  
+  **Args**:  
+  - `file`: The file to upload. It can be a path to a file, bytes, or an IO stream.  
+  - `filename`: The name to use for the file in Slack. If `None`, Slack determines the name automatically.
 ---
 
 If you'd like to contribute to this project, please fork the repository and submit a pull request. All contributions are welcome!
