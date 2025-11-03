@@ -449,12 +449,20 @@ A client for interacting with Slack's API.
   - `blocks`: A list of blocks (formatted sections) to include in the message. Can be `None`.  
   - `text`: The plain text content of the message.
 
-- **`upload(file: str | bytes | IOBase | None, filename: str | None)`**:
+- **`upload(file: str | bytes | IOBase | None, filename: str | None) (Deprecated)`**:
 
   **Description**: Uploads a file to Slack, optionally with a specified filename.  
   **Args**:  
   - `file`: The file to upload. It can be a path to a file, bytes, or an IO stream.  
   - `filename`: The name to use for the file in Slack. If `None`, Slack determines the name automatically.
+
+- **`upload_files(files: dict[str, str], channel_id: str, chat_ts: str | None = None)`**:
+
+  **Description**: Uploads multiple files to Slack, optionally specifying the chat timestamp.  
+  **Args**:  
+  - `files`: A dictionary mapping file names to file paths.  
+  - `channel_id`: The ID of the Slack channel where the files will be uploaded.
+  - `chat_ts`: The chat timestamp to use for the files (optional).
 ---
 
 If you'd like to contribute to this project, please fork the repository and submit a pull request. All contributions are welcome!
