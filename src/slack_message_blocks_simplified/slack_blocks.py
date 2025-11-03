@@ -2,7 +2,15 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .slack_client import SlackClient
-from .slack_base_elements import BaseBlock, ContextSubBlock, RichTextList, RichTextSection, SectionTextElement, SectionAccessory
+from .slack_base_elements import (
+    BaseBlock,
+    ContextSubBlock,
+    RichTextList,
+    RichTextSection,
+    SectionTextElement,
+    SectionAccessory,
+)
+
 
 @dataclass
 class DividerBlock(BaseBlock):
@@ -19,10 +27,9 @@ class DividerBlock(BaseBlock):
         Returns:
             dict[str, Any]: A dictionary with the type set to "divider".
         """
-        return {
-			"type": "divider"
-		}
-    
+        return {"type": "divider"}
+
+
 @dataclass
 class HeaderBlock(BaseBlock):
     """
@@ -33,14 +40,15 @@ class HeaderBlock(BaseBlock):
     Attributes:
         title (str): The text of the header title.
     """
-    title: str|None = None
+
+    title: str | None = None
 
     def reset_value(self) -> None:
         """
         Resets the header title to None.
         """
         self.title = None
-    
+
     def append(self, *, title: str) -> None:
         """
         Adds text to the existing header title.
@@ -58,13 +66,10 @@ class HeaderBlock(BaseBlock):
             dict[str, Any]: A dictionary containing the header type and its text.
         """
         return {
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": self.title,
-				"emoji": True
-			}
-		}
+            "type": "header",
+            "text": {"type": "plain_text", "text": self.title, "emoji": True},
+        }
+
 
 @dataclass
 class ContextBlock(BaseBlock):
@@ -76,6 +81,7 @@ class ContextBlock(BaseBlock):
     Attributes:
         elements (list[ContextSubBlock]): A list of elements in the context block.
     """
+
     elements: list[ContextSubBlock] = field(default_factory=list)
 
     def reset_value(self) -> None:
@@ -84,7 +90,9 @@ class ContextBlock(BaseBlock):
         """
         self.elements = []
 
-    def add_context_sub_blocks(self, *, context_sub_block: list[ContextSubBlock]) -> None:
+    def add_context_sub_blocks(
+        self, *, context_sub_block: list[ContextSubBlock]
+    ) -> None:
         """
         Adds sub-blocks to the context block.
 
@@ -93,7 +101,6 @@ class ContextBlock(BaseBlock):
         """
         self.elements.extend(context_sub_block)
 
-    
     def value(self) -> dict[str, Any]:
         """
         Retrieves the structure of the context block.
@@ -103,10 +110,9 @@ class ContextBlock(BaseBlock):
         """
         return {
             "type": "context",
-            "elements": [
-                element.value() for element in self.elements
-            ]
+            "elements": [element.value() for element in self.elements],
         }
+
 
 @dataclass
 class SectionBlock(BaseBlock):
@@ -119,8 +125,9 @@ class SectionBlock(BaseBlock):
         element (SectionTextElement | None): The main content of the section.
         accessory (SectionAccessory | None): An optional accessory for the section.
     """
-    element: SectionTextElement|None = None
-    accessory: SectionAccessory|None = None
+
+    element: SectionTextElement | None = None
+    accessory: SectionAccessory | None = None
 
     def reset_value(self) -> None:
         """
@@ -146,7 +153,7 @@ class SectionBlock(BaseBlock):
             accessory (SectionAccessory): The new accessory for the section.
         """
         self.accessory = accessory
-    
+
     def value(self) -> dict[str, Any]:
         """
         Retrieves the structure of the section block.
@@ -160,14 +167,19 @@ class SectionBlock(BaseBlock):
         if self.element is None:
             raise ValueError("element attribute must not be None")
 
-        return {
-            "type": "section",
-            "text": self.element.value(),
-            "accessory": self.accessory.value()
-            } if self.accessory is not None else {
+        return (
+            {
+                "type": "section",
+                "text": self.element.value(),
+                "accessory": self.accessory.value(),
+            }
+            if self.accessory is not None
+            else {
                 "type": "section",
                 "text": self.element.value(),
             }
+        )
+
 
 @dataclass
 class ImageBlock(BaseBlock):
@@ -182,9 +194,10 @@ class ImageBlock(BaseBlock):
         alt_text (str | None): The alternative text for the image.
         is_markdown (bool): Indicates whether the title is in Markdown format.
     """
-    image_url: str|None = None
+
+    image_url: str | None = None
     title: str | None = None
-    alt_text: str|None = None
+    alt_text: str | None = None
     is_markdown: bool = False
 
     def reset_value(self) -> None:
@@ -196,7 +209,14 @@ class ImageBlock(BaseBlock):
         self.alt_text = None
         self.is_markdown = False
 
-    def change_values(self, *, image_url: str|None = None, title: str | None = None, alt_text: str|None = None, is_markdown: bool|None = None) -> None:
+    def change_values(
+        self,
+        *,
+        image_url: str | None = None,
+        title: str | None = None,
+        alt_text: str | None = None,
+        is_markdown: bool | None = None,
+    ) -> None:
         """
         Updates the properties of the image block.
 
@@ -223,26 +243,27 @@ class ImageBlock(BaseBlock):
         """
         if self.image_url is None:
             raise ValueError("image_url attribute cannot be None.")
-        
+
         result: dict[str, Any]
-        
+
         if self.title is not None:
             result = {
                 "type": "image",
                 "title": {
                     "type": "mrkdwn" if self.is_markdown else "plain_text",
-                    "text": self.title
+                    "text": self.title,
                 },
                 "image_url": self.image_url,
             }
         else:
-            result =  {
+            result = {
                 "type": "image",
                 "image_url": self.image_url,
             }
         if self.alt_text is not None:
             result["alt_text"] = self.alt_text
         return result
+
 
 @dataclass
 class RichTextBlock(BaseBlock):
@@ -254,15 +275,16 @@ class RichTextBlock(BaseBlock):
     Attributes:
         sections (list[RichTextList | RichTextSection]): A list of rich text sections and lists.
     """
-    sections: list[RichTextList|RichTextSection] = field(default_factory=list)
+
+    sections: list[RichTextList | RichTextSection] = field(default_factory=list)
 
     def reset_value(self) -> None:
         """
         Clears all sections from the rich text block.
         """
         self.sections = []
-    
-    def add_sections_and_lists(self, *, elements: list[RichTextList|RichTextSection]):
+
+    def add_sections_and_lists(self, *, elements: list[RichTextList | RichTextSection]):
         """
         Adds sections and lists to the rich text block.
 
@@ -280,10 +302,9 @@ class RichTextBlock(BaseBlock):
         """
         return {
             "type": "rich_text",
-            "elements": [
-                element.value() for element in self.sections
-            ]
+            "elements": [element.value() for element in self.sections],
         }
+
 
 @dataclass
 class SlackBlock:
@@ -298,6 +319,7 @@ class SlackBlock:
         blocks (list[dict[str, Any]]): A list of structured blocks for the message.
         files (list[str]): A list of file URLs to be attached to the message.
     """
+
     client: SlackClient
     text: str = ""
     blocks: list[BaseBlock] = field(default_factory=list)
@@ -320,7 +342,7 @@ class SlackBlock:
             file_path (str): The local path of the file to upload.
             filename (str | None): An optional custom filename for the uploaded file.
         """
-        upload = self.client.upload(file= file_path, filename= filename) # type: ignore
+        upload = self.client.upload(file=file_path, filename=filename)  # type: ignore
         self.files.append(f"<{upload['file']['permalink']}>")
 
     def add_message(self, *, new_text: str) -> None:
@@ -331,7 +353,7 @@ class SlackBlock:
             new_text (str): The text to append to the existing message.
         """
         self.text = f"{self.text}{new_text}"
-    
+
     def change_message(self, *, new_text: str) -> None:
         """
         Replaces the existing message text with new content.
@@ -347,7 +369,7 @@ class SlackBlock:
         """
         self.text = ""
 
-    def post_message_block(self, *, channel_id: str) -> None:
+    def post_message_block(self, *, channel_id: str):
         """
         Sends the message block to a specified Slack channel.
 
@@ -356,14 +378,10 @@ class SlackBlock:
         """
         blocks_repr: list[dict[str, Any]] = []
         for block in self.blocks:
-            blocks_repr.append(
-                block.value() 
-            )
-        concatenated_files: str = '\n'.join(self.files)
-        self.client.post_message_block(
+            blocks_repr.append(block.value())
+        concatenated_files: str = "\n".join(self.files)
+        return self.client.post_message_block(
             channel_id=channel_id,
             blocks=blocks_repr,
-            text=f"{self.text} \n {concatenated_files}"
+            text=f"{self.text} \n {concatenated_files}",
         )
-
-

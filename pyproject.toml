@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 [project]
 name = "slack_message_blocks_simplified"
-version = "0.0.8"
+version = "0.0.9"
 authors = [
   { name="Serge Celestin Taveras", email="sergecelestint@gmail.com" },
 ]

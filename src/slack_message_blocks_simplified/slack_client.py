@@ -46,7 +46,7 @@ class SlackClient:
             The method sends a message to the specified Slack channel. If `blocks` are provided,
           they define the formatting and structure of the message.
         """
-        self._client().chat_postMessage(channel=channel_id, text=text, blocks=blocks)  # type: ignore
+        return self._client().chat_postMessage(channel=channel_id, text=text, blocks=blocks)  # type: ignore
 
     @deprecated(
         version="0.0.8",
