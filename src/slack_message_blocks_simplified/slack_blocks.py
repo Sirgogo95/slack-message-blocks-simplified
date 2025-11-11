@@ -10,6 +10,8 @@ from .slack_base_elements import (
     SectionTextElement,
     SectionAccessory,
 )
+import os
+import requests
 
 
 @dataclass
@@ -67,7 +69,7 @@ class HeaderBlock(BaseBlock):
         """
         return {
             "type": "header",
-            "text": {"type": "plain_text", "text": self.title, "emoji": True},
+            "text": {"type": "plain_text", "text": self.title},
         }
 
 
@@ -323,7 +325,7 @@ class SlackBlock:
     client: SlackClient
     text: str = ""
     blocks: list[BaseBlock] = field(default_factory=list)
-    files: list[str] = field(default_factory=list)
+    files: dict[str, Any] = field(default_factory=dict)
 
     def add_blocks(self, blocks: list[BaseBlock]) -> None:
         """
@@ -334,7 +336,7 @@ class SlackBlock:
         """
         self.blocks.extend(blocks)
 
-    def upload_file(self, *, file_path: str, filename: str | None = None) -> None:
+    def upload_file(self, *, file_path: str, filename: str) -> None:
         """
         Uploads a file to Slack and stores its permalink.
 
@@ -342,8 +344,8 @@ class SlackBlock:
             file_path (str): The local path of the file to upload.
             filename (str | None): An optional custom filename for the uploaded file.
         """
-        upload = self.client.upload(file=file_path, filename=filename)  # type: ignore
-        self.files.append(f"<{upload['file']['permalink']}>")
+
+        self.files[filename] = file_path
 
     def add_message(self, *, new_text: str) -> None:
         """
@@ -379,9 +381,37 @@ class SlackBlock:
         blocks_repr: list[dict[str, Any]] = []
         for block in self.blocks:
             blocks_repr.append(block.value())
-        concatenated_files: str = "\n".join(self.files)
-        return self.client.post_message_block(
-            channel_id=channel_id,
-            blocks=blocks_repr,
-            text=f"{self.text} \n {concatenated_files}",
-        )
+
+        if self.files:
+            file_refs: list[dict[str, Any]] = []
+            for filename in self.files:
+                filename = filename
+                path = self.files[filename]
+                length = os.path.getsize(path)
+                res: dict[str, Any] = self.client._client().files_getUploadURLExternal(  # type: ignore
+                    filename=filename,
+                    length=length,
+                )
+                upload_url: str = res["upload_url"]
+                file_id: str = res["file_id"]
+                bytes_data = open(path, "rb").read()
+                r: Any = requests.post(
+                    upload_url,
+                    files={"file": (filename, bytes_data)},
+                )
+                r.raise_for_status()
+
+                file_refs.append({"id": file_id, "title": filename})
+            print(blocks_repr)
+            return self.client._client().files_completeUploadExternal(  # type: ignore
+                files=file_refs,
+                channel_id=channel_id,
+                blocks=blocks_repr,
+            )
+
+        else:
+            return self.client.post_message_block(
+                channel_id=channel_id,
+                blocks=blocks_repr,
+                text=f"{self.text}",
+            )

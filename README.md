@@ -251,7 +251,7 @@ Represents a message block to be sent via Slack, which includes text, rich block
 - `client (SlackClient)`: The Slack client used for API communication.
 - `text (str)`: The main text content of the message.
 - `blocks (list[dict[str, Any]])`: A list of structured blocks for the message.
-- `files (list[str])`: A list of file URLs to be attached to the message.
+- `files (dict[str, Any])`: A dictionary of file paths to be attached to the message.
 
 ### Methods:
 
@@ -261,12 +261,12 @@ Represents a message block to be sent via Slack, which includes text, rich block
   **Args**:  
   - `blocks (list[BaseBlock])`: A list of block objects to add.
 
-- **`upload_file(file_path: str, filename: str | None = None)`**:
+- **`upload_file(file_path: str, filename: str)`**:
 
   **Description**: Uploads a file to Slack and stores its permalink.  
   **Args**:  
   - `file_path (str)`: The local path of the file to upload.  
-  - `filename (str | None)`: An optional custom filename for the uploaded file.
+  - `filename (str)`: An optional custom filename for the uploaded file.
 
 - **`add_message(new_text: str)`**:
 
