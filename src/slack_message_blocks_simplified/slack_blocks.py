@@ -402,7 +402,6 @@ class SlackBlock:
                 r.raise_for_status()
 
                 file_refs.append({"id": file_id, "title": filename})
-            print(blocks_repr)
             return self.client._client().files_completeUploadExternal(  # type: ignore
                 files=file_refs,
                 channel_id=channel_id,
